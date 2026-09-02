@@ -25,6 +25,11 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   Timer? _cooldownTimer;
   bool _isLoading = false;
 
+  // Security Mechanisms
+  int _failedAttempts = 0;
+  static const int _maxFailedAttempts = 3;
+  bool _isLockedOut = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,34 +52,61 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   bool get _isOtpComplete => _pinController.text.length == _otpLength;
 
   Future<void> _handleVerifyOTP() async {
-    if (!_isOtpComplete || _isLoading) return;
+    if (_isLockedOut || !_isOtpComplete || _isLoading) return;
 
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
     try {
-      // Simulate Backend/Firebase Verification Handshake
+      // Simulate Secure API Call
       await Future.delayed(const Duration(seconds: 1));
 
+      // Mocking validation logic (Replace with Firebase/Backend)
+      bool isValidOTP = _pinController.text == "1234"; 
+
       if (!mounted) return;
 
-      // TODO: Navigate to Registration / Home Screen on success
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('OTP Verified Successfully!'),
-          backgroundColor: AppColors.brandPrimary,
-        ),
-      );
+      if (isValidOTP) {
+        _failedAttempts = 0;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('OTP Verified Successfully!'),
+            backgroundColor: AppColors.brandPrimary,
+          ),
+        );
+        // TODO: Navigate to Registration/Home screen
+      } else {
+        _handleFailedAttempt();
+      }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid OTP Code. Please try again.'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+      _handleFailedAttempt();
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _handleFailedAttempt() {
+    _failedAttempts++;
+    _pinController.clear();
+
+    if (_failedAttempts >= _maxFailedAttempts) {
+      setState(() => _isLockedOut = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Too many failed attempts. Try again in 5 minutes.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } else {
+      int remaining = _maxFailedAttempts - _failedAttempts;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid OTP. $remaining attempt(s) remaining.'),
+          backgroundColor: Colors.deepOrange,
+        ),
+      );
     }
   }
 
@@ -134,16 +166,15 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
               const SizedBox(height: 36),
 
-              // Modern 4-Digit OTP Input
               Center(
                 child: Pinput(
                   controller: _pinController,
                   length: _otpLength,
+                  enabled: !_isLockedOut && !_isLoading,
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
 
-                  // Default Pin Box Style
                   defaultPinTheme: PinTheme(
                     width: 56,
                     height: 60,
@@ -153,13 +184,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       color: Colors.black87,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF6F8F7),
+                      color: _isLockedOut ? Colors.grey.shade200 : const Color(0xFFF6F8F7),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                   ),
 
-                  // Focused Box Style (When typing)
                   focusedPinTheme: PinTheme(
                     width: 56,
                     height: 60,
@@ -182,23 +212,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     ),
                   ),
 
-                  // Submitted Pin Style
-                  submittedPinTheme: PinTheme(
-                    width: 56,
-                    height: 60,
-                    textStyle: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.brandPrimary,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF6F8F7),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.brandPrimary),
-                    ),
-                  ),
-
-                  // Events
                   onChanged: (value) => setState(() {}),
                   onCompleted: (pin) => _handleVerifyOTP(),
                 ),
@@ -206,7 +219,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
               const SizedBox(height: 28),
 
-              // Resend Code Action Text
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -215,7 +227,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   TextButton(
-                    onPressed: _resendCooldown == 0 ? _startCooldownTimer : null,
+                    onPressed: (_resendCooldown == 0 && !_isLockedOut) ? _startCooldownTimer : null,
                     child: Text(
                       _resendCooldown > 0
                           ? 'Resend in ${_resendCooldown}s'
@@ -223,7 +235,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: _resendCooldown == 0
+                        color: (_resendCooldown == 0 && !_isLockedOut)
                             ? AppColors.brandPrimary
                             : Colors.grey,
                       ),
@@ -234,10 +246,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
               const Spacer(),
 
-              // Verify Button
               PrimaryButton(
-                text: _isLoading ? 'Verifying...' : 'Verify Code',
-                onPressed: (_isOtpComplete && !_isLoading) ? _handleVerifyOTP : null,
+                text: _isLockedOut
+                    ? 'Account Blocked'
+                    : (_isLoading ? 'Verifying...' : 'Verify Code'),
+                onPressed: (_isOtpComplete && !_isLoading && !_isLockedOut)
+                    ? _handleVerifyOTP
+                    : null,
               ),
               const SizedBox(height: 24),
             ],
