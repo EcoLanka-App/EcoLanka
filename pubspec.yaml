@@ -1,0 +1,36 @@
+name: ecolanka
+description: "ECOLANKA - Recycling & Item Sharing Platform"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management for MVC Controllers
+  provider: ^6.1.2
+  
+  # Backend API HTTP Requests
+  http: ^1.2.0
+  
+  # GPS Proximity Search & Location Filtering
+  geolocator: ^10.1.0
+  
+  # Local Storage for Tokens and Preferences
+  shared_preferences: ^2.2.2
+  
+  # App UI Typography and Styling
+  google_fonts: ^6.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
