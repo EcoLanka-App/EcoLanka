@@ -1,9 +1,9 @@
-// Animated Splash Screen with dot animation and timer navigation
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../config/constants.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../config/constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _fadeController;
   late AnimationController _dotsController;
   late Animation<double> _fadeAnimation;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -27,26 +28,40 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1500),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _fadeController,
+        curve: Curves.easeIn,
+      ),
     );
 
     _dotsController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat();
+      lowerBound: 0.0,
+      upperBound: 1.0,
+    );
+
+    _dotsController.repeat();
 
     _fadeController.forward();
 
-   Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go('/language');
-      }
-    });
+    _timer = Timer(
+      const Duration(seconds: 3),
+      () {
+        if (mounted) {
+          context.go('/language');
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _fadeController.dispose();
     _dotsController.dispose();
     super.dispose();
@@ -76,8 +91,6 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const SizedBox(height: 40),
-                
-                // Center Branding
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -89,7 +102,9 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.accentFresh.withValues(alpha: 0.35),
+                            color: AppColors.accentFresh.withValues(
+                              alpha: 0.35,
+                            ),
                             blurRadius: 30,
                             spreadRadius: 10,
                           ),
@@ -113,10 +128,11 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ],
                 ),
-
-                // Bottom Section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 48,
+                    vertical: 24,
+                  ),
                   child: Column(
                     children: [
                       const Text(
@@ -134,19 +150,28 @@ class _SplashScreenState extends State<SplashScreen>
                         builder: (context, child) {
                           return Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(3, (index) {
-                              final double opacity = ((_dotsController.value * 3 - index) % 3)
-                                  .clamp(0.2, 1.0);
-                              return Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 4),
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.accentFresh.withValues(alpha: opacity),
-                                ),
-                              );
-                            }),
+                            children: List.generate(
+                              3,
+                              (index) {
+                                final double opacity =
+                                    ((_dotsController.value * 3 - index) % 3)
+                                        .clamp(0.2, 1.0);
+
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.accentFresh.withValues(
+                                      alpha: opacity,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           );
                         },
                       ),
