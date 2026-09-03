@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/constants.dart';
-import 'welcome_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -51,12 +51,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _navigateToWelcome() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-    );
+ void _navigateToWelcome() {
+    context.go('/welcome');
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

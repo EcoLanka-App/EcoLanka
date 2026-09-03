@@ -24,6 +24,10 @@ dependencies:
   
   # App UI Typography and Styling
   google_fonts: ^6.1.0
+  pinput: ^6.0.2
+
+  # Routing and Navigation
+  go_router: ^14.0.0
 
 dev_dependencies:
   flutter_test:

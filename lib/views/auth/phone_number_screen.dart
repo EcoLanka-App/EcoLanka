@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../config/constants.dart';
 import '../../widgets/custom_button.dart';
-import 'otp_verification_screen.dart';
 
 class PhoneNumberScreen extends StatefulWidget {
   const PhoneNumberScreen({super.key});
@@ -15,40 +17,54 @@ class PhoneNumberScreen extends StatefulWidget {
 class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  
+
   bool _isInputValid = false;
   bool _isLoading = false;
-  
+
   // Rate Limiting Security Controls
   Timer? _cooldownTimer;
   int _cooldownSeconds = 0;
 
-  // Strict Regex for Sri Lankan Mobile Prefixes (70, 71, 72, 74, 75, 76, 77, 78)
-  static final RegExp _slMobileRegex = RegExp(r'^7[01245678]\d{7}$');
+  // Strict Regex for Sri Lankan Mobile Prefixes
+  // 70, 71, 72, 74, 75, 76, 77, 78
+  static final RegExp _slMobileRegex =
+      RegExp(r'^7[01245678]\d{7}$');
 
   @override
   void initState() {
     super.initState();
+
     _phoneController.addListener(_validatePhoneNumber);
+    _focusNode.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
-  /// Sanitizes input and validates Sri Lankan mobile numbers strictly
+  /// Sanitizes input and validates Sri Lankan mobile numbers.
   void _validatePhoneNumber() {
-    final cleanInput = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+    final cleanInput =
+        _phoneController.text.replaceAll(RegExp(r'\D'), '');
+
     final isValid = _slMobileRegex.hasMatch(cleanInput);
 
-    if (_isInputValid != isValid) {
+    if (_isInputValid != isValid && mounted) {
       setState(() {
         _isInputValid = isValid;
       });
     }
   }
 
-  /// Handles secure OTP request with Anti-Spam Rate Limiting
+  /// Handles secure OTP request with anti-spam rate limiting.
   Future<void> _handleSendVerificationCode() async {
-    if (!_isInputValid || _cooldownSeconds > 0 || _isLoading) return;
+    if (!_isInputValid ||
+        _cooldownSeconds > 0 ||
+        _isLoading) {
+      return;
+    }
 
-    // Unfocus keyboard
+    // Unfocus keyboard.
     FocusScope.of(context).unfocus();
 
     setState(() {
@@ -56,28 +72,35 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
     });
 
     try {
-      final sanitizedNumber = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+      final sanitizedNumber =
+          _phoneController.text.replaceAll(RegExp(r'\D'), '');
+
       final fullE164PhoneNumber = '+94$sanitizedNumber';
 
-      // Simulate API Handshake delay
-      await Future.delayed(const Duration(milliseconds: 600));
+      // Simulate API handshake delay.
+      await Future.delayed(
+        const Duration(milliseconds: 600),
+      );
 
       if (!mounted) return;
 
-      // Start Anti-Abuse Rate Limit Cooldown (30 Seconds)
+      // Start anti-abuse rate limit cooldown.
       _startRateLimitCooldown(30);
 
-      // Navigate securely to OTP Screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => OTPVerificationScreen(phoneNumber: fullE164PhoneNumber),
-        ),
+      // Navigate to OTP verification screen.
+      context.go(
+        '/otp-verification',
+        extra: fullE164PhoneNumber,
       );
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Failed to request verification code. Please try again.'),
+          content: Text(
+            'Failed to request verification code. '
+            'Please try again.',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -94,23 +117,29 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
     setState(() {
       _cooldownSeconds = seconds;
     });
+
     _cooldownTimer?.cancel();
-    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_cooldownSeconds <= 1) {
-        timer.cancel();
-        if (mounted) {
-          setState(() {
-            _cooldownSeconds = 0;
-          });
+
+    _cooldownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (_cooldownSeconds <= 1) {
+          timer.cancel();
+
+          if (mounted) {
+            setState(() {
+              _cooldownSeconds = 0;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _cooldownSeconds--;
+            });
+          }
         }
-      } else {
-        if (mounted) {
-          setState(() {
-            _cooldownSeconds--;
-          });
-        }
-      }
-    });
+      },
+    );
   }
 
   @override
@@ -125,14 +154,20 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: Colors.black87,
+          ),
+          // Use GoRouter navigation.
+          onPressed: () => context.pop(),
         ),
       ),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -140,7 +175,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              
+
               const Text(
                 'Enter Mobile Number',
                 style: TextStyle(
@@ -150,11 +185,17 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                   letterSpacing: -0.3,
                 ),
               ),
+
               const SizedBox(height: 8),
+
               Text(
                 'We will send an SMS verification code',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
               ),
+
               const SizedBox(height: 32),
 
               const Text(
@@ -165,9 +206,9 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                   color: Colors.black87,
                 ),
               ),
+
               const SizedBox(height: 8),
 
-              // Sanitized Input Container
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
@@ -183,7 +224,10 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                 child: Row(
                   children: [
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                       child: Row(
                         children: [
                           Text(
@@ -195,28 +239,43 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                             ),
                           ),
                           SizedBox(width: 4),
-                          Icon(Icons.arrow_drop_down_rounded, color: Colors.grey, size: 20),
+                          Icon(
+                            Icons.arrow_drop_down_rounded,
+                            color: Colors.grey,
+                            size: 20,
+                          ),
                         ],
                       ),
                     ),
-                    Container(height: 24, width: 1, color: Colors.grey.shade300),
+
+                    Container(
+                      height: 24,
+                      width: 1,
+                      color: Colors.grey.shade300,
+                    ),
+
                     Expanded(
                       child: TextField(
                         controller: _phoneController,
                         focusNode: _focusNode,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.telephoneNumberNational],
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly, // Block non-digits
-                          LengthLimitingTextInputFormatter(9),   // Strict 9 digits max
+                        autofillHints: const [
+                          AutofillHints.telephoneNumberNational,
                         ],
+
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(9),
+                        ],
+
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 1.0,
                           color: Colors.black87,
                         ),
+
                         decoration: InputDecoration(
                           hintText: '77 123 4567',
                           hintStyle: TextStyle(
@@ -225,32 +284,50 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                             color: Colors.grey.shade400,
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          contentPadding:
+                              const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
-                        onSubmitted: (_) => _handleSendVerificationCode(),
+
+                        onSubmitted: (_) =>
+                            _handleSendVerificationCode(),
                       ),
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 12),
 
               Text(
-                'By entering your number you agree to receive a one-time verification SMS. Standard SMS rates may apply.',
-                style: TextStyle(fontSize: 12, height: 1.4, color: Colors.grey.shade500),
+                'By entering your number you agree to receive a '
+                'one-time verification SMS. Standard SMS rates may apply.',
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.4,
+                  color: Colors.grey.shade500,
+                ),
               ),
 
               const Spacer(),
 
-              // Protected Primary Button with Loading & Cooldown
               PrimaryButton(
                 text: _cooldownSeconds > 0
                     ? 'Resend in ${_cooldownSeconds}s'
-                    : (_isLoading ? 'Sending...' : 'Send Verification Code'),
-                onPressed: (_isInputValid && _cooldownSeconds == 0 && !_isLoading)
-                    ? _handleSendVerificationCode
-                    : null,
+                    : (_isLoading
+                        ? 'Sending...'
+                        : 'Send Verification Code'),
+
+                onPressed:
+                    (_isInputValid &&
+                            _cooldownSeconds == 0 &&
+                            !_isLoading)
+                        ? _handleSendVerificationCode
+                        : null,
               ),
+
               const SizedBox(height: 24),
             ],
           ),
