@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'config/theme.dart';
 import 'controllers/item_controller.dart';
-import 'views/common/splash_screen.dart';
+import 'config/app_router.dart';
 
 void main() {
   runApp(
@@ -21,11 +21,11 @@ class EcoLankaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'ECOLANKA',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+      routerConfig: appRouter,
     );
   }
 }

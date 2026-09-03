@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../config/constants.dart';
-import '../auth/phone_number_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   void _onContinueWithPhone(BuildContext context) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => const PhoneNumberScreen(),
-    ),
-  );
-}
+    context.go('/phone-number');
+  }
   void _openTerms(BuildContext context) {
     // Open Terms
   }

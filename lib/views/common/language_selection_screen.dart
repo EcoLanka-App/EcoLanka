@@ -1,7 +1,7 @@
 // Dynamic Language selection screen supporting English, Sinhala, and Tamil texts
 import 'package:flutter/material.dart';
 import '../../config/constants.dart';
-import 'onboarding_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -176,13 +176,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => const OnboardingScreen(),
-                            ),
-                          );
-                        },
+                          onPressed: () {
+  context.go('/onboarding');
+},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.brandPrimary,
                           elevation: 0,

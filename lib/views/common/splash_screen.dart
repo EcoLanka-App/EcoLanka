@@ -2,7 +2,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../config/constants.dart';
-import 'language_selection_screen.dart';
+import 'package:go_router/go_router.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,11 +38,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     _fadeController.forward();
 
-    Timer(const Duration(seconds: 3), () {
+   Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const LanguageSelectionScreen()),
-        );
+        context.go('/language');
       }
     });
   }
