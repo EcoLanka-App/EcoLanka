@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
-
   @override
   State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
+  // Form key for validation
   final _formKey = GlobalKey<FormState>();
 
+  // Controller for full name input
   final TextEditingController _nameController = TextEditingController();
 
+  // Selected district (default: Colombo)
   String _selectedDistrict = 'Colombo';
+  
+  // Selected role (donor, requester, or both)
   String _selectedRole = 'both';
 
+  // List of all districts in Sri Lanka
   final List<String> _districts = [
     'Colombo',
     'Gampaha',
@@ -44,6 +51,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     'Kegalle',
   ];
 
+  // Validate if form is complete
   bool get _isFormValid {
     return _nameController.text.trim().isNotEmpty &&
         _selectedDistrict.isNotEmpty;
@@ -51,12 +59,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   void dispose() {
+    // Clean up text controller
     _nameController.dispose();
     super.dispose();
   }
 
+  // Handle completion, save data, and navigate to home
   void _handleComplete() {
     if (_formKey.currentState!.validate() && _isFormValid) {
+      // 1. Update the UserProvider with selected district
+      Provider.of<UserProvider>(context, listen: false)
+          .updateDistrict(_selectedDistrict);
+      
+      // 2. Navigate to home screen after profile setup is complete
       context.go('/home');
     }
   }
@@ -79,6 +94,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Main scrollable content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -91,6 +107,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     children: [
                       const SizedBox(height: 8),
 
+                      // Screen title
                       const Text(
                         'Set Up Your Profile',
                         style: TextStyle(
@@ -103,6 +120,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 6),
 
+                      // Screen subtitle
                       const Text(
                         'Tell us a bit about yourself',
                         style: TextStyle(
@@ -113,6 +131,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 24),
 
+                      // Full name label
                       const Text(
                         'Full Name',
                         style: TextStyle(
@@ -124,6 +143,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 6),
 
+                      // Full name input field
                       TextFormField(
                         controller: _nameController,
                         onChanged: (value) {
@@ -158,17 +178,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           color: Color(0xFF17352A),
                         ),
                         validator: (value) {
-                          if (value == null ||
-                              value.trim().isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please enter your full name';
                           }
-
                           return null;
                         },
                       ),
 
                       const SizedBox(height: 20),
 
+                      // District/City label
                       const Text(
                         'District / City',
                         style: TextStyle(
@@ -180,8 +199,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 6),
 
+                      // District dropdown selector (Fixed 'value' to 'initialValue' warning)
                       DropdownButtonFormField<String>(
-                        value: _selectedDistrict,
+                        initialValue: _selectedDistrict,
                         dropdownColor: Colors.white,
                         decoration: InputDecoration(
                           filled: true,
@@ -232,6 +252,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 24),
 
+                      // Role selection section title
                       const Text(
                         'I want to...',
                         style: TextStyle(
@@ -243,6 +264,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 12),
 
+                      // Donor role card
                       _buildRoleCard(
                         id: 'donor',
                         title: 'Donor',
@@ -252,6 +274,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 10),
 
+                      // Requester role card
                       _buildRoleCard(
                         id: 'requester',
                         title: 'Requester',
@@ -261,6 +284,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 10),
 
+                      // Both role card
                       _buildRoleCard(
                         id: 'both',
                         title: 'Both',
@@ -275,6 +299,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ),
 
+            // Bottom submit button
             Container(
               padding: const EdgeInsets.fromLTRB(
                 24,
@@ -283,11 +308,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 20,
               ),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
                 border: Border(
                   top: BorderSide(
-                    color: const Color(0xFFDDE5DE)
-                        .withOpacity(0.7),
+                    color: const Color(0xFFDDE5DE).withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -295,13 +319,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed:
-                      _isFormValid ? _handleComplete : null,
+                  onPressed: _isFormValid ? _handleComplete : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF075B3A),
                     disabledBackgroundColor:
-                        const Color(0xFF075B3A)
-                            .withOpacity(0.5),
+                        const Color(0xFF075B3A).withValues(alpha: 0.5),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -345,9 +367,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           vertical: 14,
         ),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFFF7FBF2)
-              : Colors.white,
+          color: isSelected ? const Color(0xFFF7FBF2) : Colors.white,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: isSelected
@@ -388,22 +408,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w600,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w600,
                       color: const Color(0xFF17352A),
                     ),
                   ),
-
                   const SizedBox(height: 2),
-
                   Text(
                     subtitle,
                     style: const TextStyle(

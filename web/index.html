@@ -33,6 +33,14 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- 
+    Added loading indicator div to prevent 'removeChild of null' errors 
+    when Flutter web initializes and tries to remove the loader element.
+  -->
+  <div id="loading" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <div style="font-family: sans-serif; color: #075B3A; font-weight: bold;">Loading EcoLankan...</div>
+  </div>
+
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
