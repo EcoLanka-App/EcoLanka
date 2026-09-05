@@ -19,15 +19,20 @@ dependencies:
   # GPS Proximity Search & Location Filtering
   geolocator: ^10.1.0
   
-  # Local Storage for Tokens and Preferences
-  shared_preferences: ^2.2.2
+  # Local Storage for Tokens and Preferences (updated)
+  shared_preferences: ^2.3.2
+
   
   # App UI Typography and Styling
   google_fonts: ^6.1.0
   pinput: ^6.0.2
 
   # Routing and Navigation
-  go_router: ^14.0.0
+  go_router: ^18.0.1
+
+  # Animation utilities (added as requested)
+  flutter_animate: ^4.5.2
+  
 
 dev_dependencies:
   flutter_test:
