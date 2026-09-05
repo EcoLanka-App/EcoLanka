@@ -1,7 +1,8 @@
-// Dynamic Language selection screen supporting English, Sinhala, and Tamil texts
 import 'package:flutter/material.dart';
-import '../../config/constants.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../config/constants.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -14,7 +15,6 @@ class LanguageSelectionScreen extends StatefulWidget {
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   String selectedLanguage = 'en';
 
-  // Dynamic texts according to selected language
   final Map<String, Map<String, String>> localizedTexts = {
     'en': {
       'title': 'Select Language',
@@ -36,154 +36,174 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     },
   };
 
+  Future<void> _saveLanguageAndProceed() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_language', selectedLanguage);
+
+    if (!mounted) return;
+
+    context.go('/onboarding');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+
     final currentTexts = localizedTexts[selectedLanguage]!;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0A4D32),
-              AppColors.brandPrimary,
-              Color(0xFF043823),
-            ],
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.06,
+            vertical: screenHeight * 0.03,
           ),
-        ),
-        child: SafeArea(
-          bottom: false,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 40),
+              SizedBox(height: screenHeight * 0.02),
 
-              // Top Branding
-              Column(
-                children: [
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: AppColors.brandPrimary,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.accentFresh.withValues(alpha: 0.35),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(14),
-                    child: Image.asset(
-                      AppImages.logo,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.eco,
-                        color: Colors.white,
-                        size: 32,
+              Container(
+                width: screenWidth * 0.18,
+                height: screenWidth * 0.18,
+                constraints: const BoxConstraints(
+                  maxWidth: 72,
+                  maxHeight: 72,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.brandPrimary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Image.asset(
+                  AppImages.logo,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.eco,
+                    color: AppColors.brandPrimary,
+                    size: 36,
+                  ),
+                ),
+              ).animate().fadeIn(duration: 800.ms).scale(
+                    duration: 800.ms,
+                  ),
+
+              SizedBox(height: screenHeight * 0.02),
+
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Eco',
+                      style: TextStyle(
+                        color: Color(0xFF2E7D32),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'EcoLankan',
-                    style: TextStyle(
-                      color: AppColors.onBrand,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
+                    TextSpan(
+                      text: 'Lanka',
+                      style: TextStyle(
+                        color: Color(0xFF1F2937),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
-              const Spacer(),
+              const SizedBox(height: 6),
 
-              // Bottom Language Selector Sheet
+              Text(
+                'Sri Lanka\'s Green Sharing Community',
+                style: TextStyle(
+                  fontSize: screenWidth * 0.035,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+
+              SizedBox(height: screenHeight * 0.04),
+
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
-                decoration: const BoxDecoration(
+                padding: EdgeInsets.all(screenWidth * 0.06),
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(32),
-                    topRight: Radius.circular(32),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.grey.shade200,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                    Text(
+                      currentTexts['title']!,
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.05,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 20),
 
-                    // Dynamic Title
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Text(
-                        currentTexts['title']!,
-                        key: ValueKey(currentTexts['title']),
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 4),
 
-                    // Dynamic Subtitle
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Text(
-                        currentTexts['subtitle']!,
-                        key: ValueKey(currentTexts['subtitle']),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                    Text(
+                      currentTexts['subtitle']!,
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.032,
+                        color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 20),
 
-                    // Language Option Tiles
-                    _buildLanguageTile('English', 'en'),
-                    const SizedBox(height: 12),
-                    _buildLanguageTile('සිංහල', 'si'),
-                    const SizedBox(height: 12),
-                    _buildLanguageTile('தமிழ்', 'ta'),
+                    SizedBox(height: screenHeight * 0.03),
 
-                    const SizedBox(height: 24),
+                    _buildLanguageTile(
+                      'English',
+                      'en',
+                      screenWidth,
+                    ),
 
-                    // Continue Button with Onboarding Navigation
+                    SizedBox(height: screenHeight * 0.015),
+
+                    _buildLanguageTile(
+                      'සිංහල',
+                      'si',
+                      screenWidth,
+                    ),
+
+                    SizedBox(height: screenHeight * 0.015),
+
+                    _buildLanguageTile(
+                      'தமிழ்',
+                      'ta',
+                      screenWidth,
+                    ),
+
+                    SizedBox(height: screenHeight * 0.035),
+
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
+                      height: 52,
                       child: ElevatedButton(
-                          onPressed: () {
-  context.go('/onboarding');
-},
+                        onPressed: _saveLanguageAndProceed,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.brandPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(26),
                           ),
                         ),
                         child: Row(
@@ -208,19 +228,17 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    SizedBox(height: screenHeight * 0.02),
 
-                    // Dynamic Footer
                     Center(
                       child: Text(
                         currentTexts['footer']!,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: screenWidth * 0.03,
                           color: Colors.grey.shade500,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
                   ],
                 ),
               ),
@@ -231,8 +249,13 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     );
   }
 
-  Widget _buildLanguageTile(String label, String code) {
+  Widget _buildLanguageTile(
+    String label,
+    String code,
+    double screenWidth,
+  ) {
     final bool isSelected = selectedLanguage == code;
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -241,13 +264,18 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.04,
+          vertical: 14,
+        ),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.brandPrimary.withValues(alpha: 0.05)
               : Colors.white,
           border: Border.all(
-            color: isSelected ? AppColors.brandPrimary : Colors.grey.shade300,
+            color: isSelected
+                ? AppColors.brandPrimary
+                : Colors.grey.shade300,
             width: isSelected ? 2.0 : 1.0,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -258,9 +286,12 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.brandPrimary : Colors.black87,
+                fontSize: screenWidth * 0.038,
+                fontWeight:
+                    isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.brandPrimary
+                    : Colors.black87,
               ),
             ),
             Container(
