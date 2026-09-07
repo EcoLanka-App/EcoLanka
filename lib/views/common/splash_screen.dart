@@ -1,8 +1,12 @@
+
+// lib/views/common/splash_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../config/constants.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../config/app_router.dart';
+import '../../config/constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,62 +26,86 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _startStartupFlow() async {
     await Future.delayed(const Duration(milliseconds: 4500));
+
+    if (!mounted) return;
+
     _navigateToLanguage();
   }
 
   void _navigateToLanguage() {
     if (!mounted || _hasNavigated) return;
+
+    final navigatorContext = rootNavigatorKey.currentContext;
+
+    if (navigatorContext == null) return;
+
     _hasNavigated = true;
 
-    GoRouter.of(rootNavigatorKey.currentContext!).go('/language');
+    GoRouter.of(navigatorContext).go('/language');
   }
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final screenHeight = mediaQuery.size.height;
+
     final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
+    final horizontalPadding =
+        (screenWidth * 0.06).clamp(16.0, 40.0);
+
+    final verticalPadding =
+        (screenHeight * 0.03).clamp(16.0, 32.0);
+
+    final logoSize =
+        (screenWidth * 0.45).clamp(120.0, 180.0);
+
+    final copyrightFontSize =
+        (screenWidth * 0.03).clamp(11.0, 14.0);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: screenWidth * 0.06,
-            vertical: screenHeight * 0.03,
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(height: screenHeight * 0.02),
+              SizedBox(
+                height: (screenHeight * 0.02).clamp(8.0, 20.0),
+              ),
 
               Expanded(
                 child: Center(
                   child: GestureDetector(
                     onTap: _navigateToLanguage,
-                    child: Container(
-                      width: screenWidth * 0.45,
-                      height: screenWidth * 0.45,
-                      constraints: const BoxConstraints(
-                        maxWidth: 180,
-                        maxHeight: 180,
-                      ),
-                      padding: const EdgeInsets.all(16),
+                    child: SizedBox(
+                      width: logoSize,
+                      height: logoSize,
                       child: Image.asset(
                         AppImages.logo,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                          Icons.eco,
-                          color: Color(0xFF2E7D32),
-                          size: 64,
-                        ),
+                        errorBuilder: (
+                          context,
+                          error,
+                          stackTrace,
+                        ) {
+                          return const Icon(
+                            Icons.eco_rounded,
+                            color: Color(0xFF2E7D32),
+                            size: 64,
+                          );
+                        },
                       ),
                     ),
                   ),
                 )
                     .animate()
-                    .fadeIn(duration: 1200.ms)
+                    .fadeIn(
+                      duration: 1200.ms,
+                    )
                     .scale(
                       begin: const Offset(0.8, 0.8),
                       end: const Offset(1.0, 1.0),
@@ -86,46 +114,39 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
               ),
 
-              Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.1,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: const LinearProgressIndicator(
-                        minHeight: 4,
-                        backgroundColor: Color(0xFFE8F5E9),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFF2E7D32),
-                        ),
-                      ),
-                    ),
-                  ).animate().fadeIn(
-                        delay: 400.ms,
-                        duration: 800.ms,
-                      ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal:
+                      (screenWidth * 0.05).clamp(
+                    8.0,
+                    30.0,
+                  ),
+                ),
+                child: Text(
+                  'Copyright © 2026 EcoLanka Community (Pvt) Ltd.\n'
+                  'All Rights Reserved.',
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: copyrightFontSize,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey.shade500,
+                    height: 1.4,
+                  ),
+                ),
+              )
+                  .animate()
+                  .fadeIn(
+                    delay: 600.ms,
+                    duration: 800.ms,
+                  ),
 
-                  SizedBox(height: screenHeight * 0.03),
-
-                  Text(
-                    'Copyright © 2026 EcoLanka Community (Pvt) Ltd.\n'
-                    'All Rights Reserved.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.03,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey.shade500,
-                      height: 1.4,
-                    ),
-                  ).animate().fadeIn(
-                        delay: 600.ms,
-                        duration: 800.ms,
-                      ),
-
-                  SizedBox(height: screenHeight * 0.015),
-                ],
+              SizedBox(
+                height: (screenHeight * 0.015).clamp(
+                  6.0,
+                  16.0,
+                ),
               ),
             ],
           ),
@@ -134,3 +155,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+

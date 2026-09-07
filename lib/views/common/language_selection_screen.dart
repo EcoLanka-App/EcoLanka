@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+
 import '../../config/constants.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/language_provider.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -12,46 +15,42 @@ class LanguageSelectionScreen extends StatefulWidget {
       _LanguageSelectionScreenState();
 }
 
-class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
+class _LanguageSelectionScreenState
+    extends State<LanguageSelectionScreen> {
   String selectedLanguage = 'en';
 
-  final Map<String, Map<String, String>> localizedTexts = {
-    'en': {
-      'title': 'Select Language',
-      'subtitle': 'Select your preferred language',
-      'btn': 'Continue',
-      'footer': 'You can change this later in Settings',
-    },
-    'si': {
-      'title': 'භාෂාව තෝරන්න',
-      'subtitle': 'ඔබගේ කැමති භාෂාව තෝරන්න',
-      'btn': 'ඉදිරියට යන්න',
-      'footer': 'මෙය පසුව Settings හරහා වෙනස් කළ හැක',
-    },
-    'ta': {
-      'title': 'மொழியைத் தேர்ந்தெடுக்கவும்',
-      'subtitle': 'உங்கள் விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்',
-      'btn': 'தொடரவும்',
-      'footer': 'அமைப்புகளில் இதை பின்னர் மாற்றலாம்',
-    },
-  };
+  @override
+  void initState() {
+    super.initState();
 
-  Future<void> _saveLanguageAndProceed() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selected_language', selectedLanguage);
+    final languageProvider = context.read<LanguageProvider>();
 
-    if (!mounted) return;
+    selectedLanguage =
+        languageProvider.appLocale.languageCode;
+  }
 
+  Future<void> _selectLanguage(String code) async {
+    setState(() {
+      selectedLanguage = code;
+    });
+
+    await context.read<LanguageProvider>().changeLanguage(
+          Locale(code),
+        );
+  }
+
+  void _continue() {
     context.go('/onboarding');
   }
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
+
     final screenHeight = mediaQuery.size.height;
     final screenWidth = mediaQuery.size.width;
 
-    final currentTexts = localizedTexts[selectedLanguage]!;
+    final t = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -64,74 +63,134 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: screenHeight * 0.02),
+              // --------------------------------------------------
+              // TOP SPACING
+              // --------------------------------------------------
+
+              SizedBox(
+                height: screenHeight * 0.02,
+              ),
+
+              // --------------------------------------------------
+              // LOGO
+              // --------------------------------------------------
 
               Container(
-                width: screenWidth * 0.18,
-                height: screenWidth * 0.18,
-                constraints: const BoxConstraints(
-                  maxWidth: 72,
-                  maxHeight: 72,
+                width: (screenWidth * 0.18).clamp(
+                  56.0,
+                  72.0,
+                ),
+                height: (screenWidth * 0.18).clamp(
+                  56.0,
+                  72.0,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.brandPrimary.withValues(alpha: 0.1),
+                  color: AppColors.brandPrimary.withValues(
+                    alpha: 0.1,
+                  ),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Image.asset(
                   AppImages.logo,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.eco,
-                    color: AppColors.brandPrimary,
-                    size: 36,
-                  ),
+                  errorBuilder: (
+                    context,
+                    error,
+                    stackTrace,
+                  ) {
+                    return const Icon(
+                      Icons.eco,
+                      color: AppColors.brandPrimary,
+                      size: 36,
+                    );
+                  },
                 ),
-              ).animate().fadeIn(duration: 800.ms).scale(
+              )
+                  .animate()
+                  .fadeIn(
+                    duration: 800.ms,
+                  )
+                  .scale(
                     duration: 800.ms,
                   ),
 
-              SizedBox(height: screenHeight * 0.02),
+              // --------------------------------------------------
+              // LOGO SPACING
+              // --------------------------------------------------
 
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
+              SizedBox(
+                height: screenHeight * 0.02,
+              ),
+
+              // --------------------------------------------------
+              // APP NAME
+              // --------------------------------------------------
+
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: RichText(
+                  text: const TextSpan(
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: 'Eco',
+                        style: TextStyle(
+                          color: Color(0xFF2E7D32),
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Lanka',
+                        style: TextStyle(
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ],
                   ),
-                  children: [
-                    TextSpan(
-                      text: 'Eco',
-                      style: TextStyle(
-                        color: Color(0xFF2E7D32),
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Lanka',
-                      style: TextStyle(
-                        color: Color(0xFF1F2937),
-                      ),
-                    ),
-                  ],
                 ),
               ),
 
               const SizedBox(height: 6),
 
+              // --------------------------------------------------
+              // TAGLINE
+              // --------------------------------------------------
+
               Text(
                 'Sri Lanka\'s Green Sharing Community',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: screenWidth * 0.035,
+                  fontSize: (screenWidth * 0.035).clamp(
+                    12.0,
+                    16.0,
+                  ),
                   color: Colors.grey.shade600,
                 ),
               ),
 
-              SizedBox(height: screenHeight * 0.04),
+              // --------------------------------------------------
+              // SPACING
+              // --------------------------------------------------
+
+              SizedBox(
+                height: screenHeight * 0.04,
+              ),
+
+              // --------------------------------------------------
+              // LANGUAGE CARD
+              // --------------------------------------------------
 
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(screenWidth * 0.06),
+                padding: EdgeInsets.all(
+                  screenWidth * 0.06,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -140,19 +199,31 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(
+                        alpha: 0.03,
+                      ),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
+                    // --------------------------------------------------
+                    // TITLE
+                    // --------------------------------------------------
+
                     Text(
-                      currentTexts['title']!,
+                      t.languageSelectionTitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.05,
+                        fontSize: (screenWidth * 0.05).clamp(
+                          18.0,
+                          24.0,
+                        ),
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
@@ -160,61 +231,119 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
                     const SizedBox(height: 4),
 
+                    // --------------------------------------------------
+                    // SUBTITLE
+                    // --------------------------------------------------
+
                     Text(
-                      currentTexts['subtitle']!,
+                      t.languageSelectionSubtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.032,
+                        fontSize: (screenWidth * 0.032).clamp(
+                          12.0,
+                          15.0,
+                        ),
                         color: Colors.grey.shade600,
                       ),
                     ),
 
-                    SizedBox(height: screenHeight * 0.03),
+                    // --------------------------------------------------
+                    // SPACING
+                    // --------------------------------------------------
 
-                    _buildLanguageTile(
-                      'English',
-                      'en',
-                      screenWidth,
+                    SizedBox(
+                      height: screenHeight * 0.03,
                     ),
 
-                    SizedBox(height: screenHeight * 0.015),
+                    // --------------------------------------------------
+                    // ENGLISH
+                    // --------------------------------------------------
 
                     _buildLanguageTile(
-                      'සිංහල',
-                      'si',
-                      screenWidth,
+                      label: 'English',
+                      code: 'en',
+                      screenWidth: screenWidth,
                     ),
 
-                    SizedBox(height: screenHeight * 0.015),
+                    SizedBox(
+                      height: screenHeight * 0.015,
+                    ),
+
+                    // --------------------------------------------------
+                    // SINHALA
+                    // --------------------------------------------------
 
                     _buildLanguageTile(
-                      'தமிழ்',
-                      'ta',
-                      screenWidth,
+                      label: 'සිංහල',
+                      code: 'si',
+                      screenWidth: screenWidth,
                     ),
 
-                    SizedBox(height: screenHeight * 0.035),
+                    SizedBox(
+                      height: screenHeight * 0.015,
+                    ),
+
+                    // --------------------------------------------------
+                    // TAMIL
+                    // --------------------------------------------------
+
+                    _buildLanguageTile(
+                      label: 'தமிழ்',
+                      code: 'ta',
+                      screenWidth: screenWidth,
+                    ),
+
+                    // --------------------------------------------------
+                    // BUTTON SPACING
+                    // --------------------------------------------------
+
+                    SizedBox(
+                      height: screenHeight * 0.035,
+                    ),
+
+                    // --------------------------------------------------
+                    // CONTINUE BUTTON
+                    // --------------------------------------------------
 
                     SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: _saveLanguageAndProceed,
+                        onPressed: _continue,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.brandPrimary,
+                          backgroundColor:
+                              AppColors.brandPrimary,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(26),
+                          padding:
+                              const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                          shape:
+                              RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(26),
                           ),
                         ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              currentTexts['btn']!,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                            Flexible(
+                              child: Text(
+                                t.continueButton,
+                                maxLines: 1,
+                                overflow:
+                                    TextOverflow.ellipsis,
+                                textAlign:
+                                    TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight:
+                                      FontWeight.w600,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -228,19 +357,43 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       ),
                     ),
 
-                    SizedBox(height: screenHeight * 0.02),
+                    // --------------------------------------------------
+                    // FOOTER SPACING
+                    // --------------------------------------------------
+
+                    SizedBox(
+                      height: screenHeight * 0.02,
+                    ),
+
+                    // --------------------------------------------------
+                    // FOOTER
+                    // --------------------------------------------------
 
                     Center(
                       child: Text(
-                        currentTexts['footer']!,
+                        t.languageSelectionFooter,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: screenWidth * 0.03,
+                          fontSize: (screenWidth * 0.03).clamp(
+                            11.0,
+                            14.0,
+                          ),
                           color: Colors.grey.shade500,
                         ),
                       ),
                     ),
                   ],
                 ),
+              ),
+
+              // --------------------------------------------------
+              // BOTTOM SPACING
+              // --------------------------------------------------
+
+              SizedBox(
+                height: screenHeight * 0.02,
               ),
             ],
           ),
@@ -249,28 +402,34 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     );
   }
 
-  Widget _buildLanguageTile(
-    String label,
-    String code,
-    double screenWidth,
-  ) {
+  // ================================================================
+  // LANGUAGE TILE
+  // ================================================================
+
+  Widget _buildLanguageTile({
+    required String label,
+    required String code,
+    required double screenWidth,
+  }) {
     final bool isSelected = selectedLanguage == code;
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedLanguage = code;
-        });
-      },
+      onTap: () => _selectLanguage(code),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
+        width: double.infinity,
         padding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.04,
+          horizontal: (screenWidth * 0.04).clamp(
+            12.0,
+            20.0,
+          ),
           vertical: 14,
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.brandPrimary.withValues(alpha: 0.05)
+              ? AppColors.brandPrimary.withValues(
+                  alpha: 0.05,
+                )
               : Colors.white,
           border: Border.all(
             color: isSelected
@@ -281,19 +440,33 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: screenWidth * 0.038,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? AppColors.brandPrimary
-                    : Colors.black87,
+            // LANGUAGE NAME
+
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: (screenWidth * 0.038).clamp(
+                    14.0,
+                    18.0,
+                  ),
+                  fontWeight: isSelected
+                      ? FontWeight.w600
+                      : FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.brandPrimary
+                      : Colors.black87,
+                ),
               ),
             ),
+
+            const SizedBox(width: 12),
+
+            // SELECTED INDICATOR
+
             Container(
               width: 22,
               height: 22,

@@ -9,20 +9,26 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
+  # Localization support from Flutter SDK
+  flutter_localizations:
+    sdk: flutter
+
+  # Internationalization helper (commonly required when using flutter_localizations)
+  intl: ^0.20.3
+
   # State Management for MVC Controllers
   provider: ^6.1.2
-  
+
   # Backend API HTTP Requests
   http: ^1.2.0
-  
+
   # GPS Proximity Search & Location Filtering
   geolocator: ^10.1.0
-  
-  # Local Storage for Tokens and Preferences (updated)
+
+  # Local Storage for Tokens and Preferences
   shared_preferences: ^2.3.2
 
-  
   # App UI Typography and Styling
   google_fonts: ^6.1.0
   pinput: ^6.0.2
@@ -30,9 +36,11 @@ dependencies:
   # Routing and Navigation
   go_router: ^18.0.1
 
-  # Animation utilities (added as requested)
+  # Animation utilities
   flutter_animate: ^4.5.2
-  
+
+  # Cupertino icons
+  cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:
@@ -40,6 +48,8 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
+  generate: true
   uses-material-design: true
+
   assets:
     - assets/images/

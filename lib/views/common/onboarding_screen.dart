@@ -1,7 +1,11 @@
+
 // lib/views/common/onboarding_screen.dart
+
 import 'package:flutter/material.dart';
-import '../../config/constants.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../config/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -12,39 +16,80 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+
   int _currentIndex = 0;
+
+  // ============================================================
+  // ONBOARDING DATA
+  // ============================================================
 
   final List<Map<String, dynamic>> _onboardingData = [
     {
-      'badge': 'COMMUNITY FIRST',
-      'title': 'Welcome to EcoLankan',
-      'description':
-          'Join Sri Lanka\'s first green sharing community. Share unused items, reduce waste, and protect our island.',
+      'badgeKey': 'badge1',
+      'titleKey': 'title1',
+      'descriptionKey': 'description1',
       'image': AppImages.onboarding1,
       'icon': Icons.eco_rounded,
     },
     {
-      'badge': 'LOCAL SHARING',
-      'title': 'Share & Borrow Easily',
-      'description':
-          'Save money and help neighbors by sharing tools, books, and household goods within your trusted local area.',
+      'badgeKey': 'badge2',
+      'titleKey': 'title2',
+      'descriptionKey': 'description2',
       'image': AppImages.onboarding2,
       'icon': Icons.handshake_rounded,
     },
     {
-      'badge': 'GREEN IMPACT',
-      'title': 'Build a Greener Future',
-      'description':
-          'Track your environmental impact, earn eco-points, and contribute to a sustainable Sri Lankan lifestyle.',
+      'badgeKey': 'badge3',
+      'titleKey': 'title3',
+      'descriptionKey': 'description3',
       'image': AppImages.onboarding3,
       'icon': Icons.forest_rounded,
     },
   ];
 
+  // ============================================================
+  // GET LOCALIZED TEXT
+  // ============================================================
+
+  String _getText(
+    AppLocalizations t,
+    String key,
+  ) {
+    switch (key) {
+      case 'badge1':
+        return t.badge1;
+      case 'title1':
+        return t.title1;
+      case 'description1':
+        return t.description1;
+
+      case 'badge2':
+        return t.badge2;
+      case 'title2':
+        return t.title2;
+      case 'description2':
+        return t.description2;
+
+      case 'badge3':
+        return t.badge3;
+      case 'title3':
+        return t.title3;
+      case 'description3':
+        return t.description3;
+
+      default:
+        return '';
+    }
+  }
+
+  // ============================================================
+  // NEXT BUTTON
+  // ============================================================
+
   void _onNext() {
     if (_currentIndex < _onboardingData.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
       );
     } else {
@@ -52,9 +97,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  // ============================================================
+  // NAVIGATE TO WELCOME
+  // ============================================================
+
   void _navigateToWelcome() {
+    if (!mounted) return;
+
     context.go('/welcome');
   }
+
+  // ============================================================
+  // DISPOSE
+  // ============================================================
 
   @override
   void dispose() {
@@ -62,228 +117,429 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
-    final mq = MediaQuery.of(context);
-    final textScale = mq.textScaleFactor.clamp(1.0, 1.3);
-    final screenWidth = mq.size.width;
-    final screenHeight = mq.size.height;
+    final t = AppLocalizations.of(context)!;
+    final mediaQuery = MediaQuery.of(context);
 
-    // Derive sizes relative to screen for responsiveness
-    final double heroImageHeight = (screenHeight * 0.28).clamp(140.0, 300.0);
-    final double titleFontSize = (screenWidth * 0.055).clamp(18.0, 28.0) * textScale;
-    final double descFontSize = (screenWidth * 0.035).clamp(13.0, 16.0) * textScale;
-    final double badgeFontSize = (screenWidth * 0.030).clamp(11.0, 13.0);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
+    // ==========================================================
+    // RESPONSIVE VALUES
+    // ==========================================================
+
+    final horizontalPadding =
+        (screenWidth * 0.07).clamp(16.0, 40.0);
+
+    final topPadding =
+        (screenHeight * 0.025).clamp(12.0, 28.0);
+
+    final bottomPadding =
+        (screenHeight * 0.025).clamp(12.0, 28.0);
+
+    final heroImageHeight =
+        (screenHeight * 0.28).clamp(140.0, 300.0);
+
+    final titleFontSize =
+        (screenWidth * 0.055).clamp(19.0, 28.0);
+
+    final descriptionFontSize =
+        (screenWidth * 0.035).clamp(13.0, 17.0);
+
+    final badgeFontSize =
+        (screenWidth * 0.030).clamp(10.0, 13.0);
+
+    final buttonFontSize =
+        (screenWidth * 0.04).clamp(14.0, 18.0);
+
+    final skipFontSize =
+        (screenWidth * 0.037).clamp(12.0, 16.0);
+
+    final buttonHeight =
+        (screenHeight * 0.065).clamp(48.0, 60.0);
+
+    // ==========================================================
+    // SCREEN
+    // ==========================================================
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: LayoutBuilder(builder: (context, constraints) {
-          return Stack(
-            children: [
-              // PageView fills available area but leaves room for top/bottom controls.
-              Positioned.fill(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: constraints.maxWidth * 0.07,
-                    vertical: constraints.maxHeight * 0.04,
-                  ),
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) => setState(() => _currentIndex = index),
-                    itemCount: _onboardingData.length,
-                    itemBuilder: (context, index) {
-                      final item = _onboardingData[index];
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Image area (responsive height)
-                          SizedBox(
-                            height: heroImageHeight,
-                            child: Image.asset(
-                              item['image'] as String,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: heroImageHeight * 0.65,
-                                  height: heroImageHeight * 0.65,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.brandPrimary.withValues(alpha: 0.08),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    item['icon'] as IconData,
-                                    size: heroImageHeight * 0.45,
-                                    color: AppColors.brandPrimary,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          SizedBox(height: constraints.maxHeight * 0.04),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              children: [
+                // =================================================
+                // PAGE VIEW
+                // =================================================
 
-                          // Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppColors.brandPrimary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              item['badge'] as String,
-                              style: TextStyle(
-                                color: AppColors.brandPrimary,
-                                fontSize: badgeFontSize,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
+                Positioned.fill(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: horizontalPadding,
+                      right: horizontalPadding,
+                      top: topPadding + 35,
+                      bottom: bottomPadding + 85,
+                    ),
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: _onboardingData.length,
+                      onPageChanged: (index) {
+                        if (!mounted) return;
+
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        final item = _onboardingData[index];
+
+                        final badge = _getText(
+                          t,
+                          item['badgeKey'] as String,
+                        );
+
+                        final title = _getText(
+                          t,
+                          item['titleKey'] as String,
+                        );
+
+                        final description = _getText(
+                          t,
+                          item['descriptionKey'] as String,
+                        );
+
+                        return Column(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+                          children: [
+                            // =====================================
+                            // IMAGE
+                            // =====================================
+
+                            SizedBox(
+                              height: heroImageHeight,
+                              child: Image.asset(
+                                item['image'] as String,
+                                fit: BoxFit.contain,
+                                errorBuilder:
+                                    (context, error, stackTrace) {
+                                  return Container(
+                                    width:
+                                        heroImageHeight * 0.65,
+                                    height:
+                                        heroImageHeight * 0.65,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.brandPrimary
+                                          .withValues(alpha: 0.08),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      item['icon'] as IconData,
+                                      size:
+                                          heroImageHeight * 0.45,
+                                      color:
+                                          AppColors.brandPrimary,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                          ),
-                          SizedBox(height: constraints.maxHeight * 0.02),
 
-                          // Title
-                          Text(
-                            item['title'] as String,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: titleFontSize,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                            // =====================================
+                            // IMAGE → BADGE
+                            // =====================================
+
+                            SizedBox(
+                              height:
+                                  (constraints.maxHeight * 0.035)
+                                      .clamp(12.0, 28.0),
                             ),
-                          ),
-                          SizedBox(height: constraints.maxHeight * 0.015),
 
-                          // Description
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.02),
-                            child: Text(
-                              item['description'] as String,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: descFontSize,
-                                height: 1.5,
-                                color: Colors.grey.shade600,
+                            // =====================================
+                            // BADGE
+                            // =====================================
+
+                            Container(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    constraints.maxWidth * 0.85,
                               ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-
-              // Top indicators & skip button
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(top: constraints.maxHeight * 0.02, left: 12, right: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Page indicators (left)
-                      Row(
-                        children: List.generate(
-                          _onboardingData.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            margin: const EdgeInsets.only(right: 6),
-                            height: 8,
-                            width: _currentIndex == index ? 24 : 8,
-                            decoration: BoxDecoration(
-                              color: _currentIndex == index ? AppColors.brandPrimary : Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Skip (right)
-                      if (_currentIndex < _onboardingData.length - 1)
-                        TextButton(
-                          onPressed: _navigateToWelcome,
-                          child: Text(
-                            'Skip',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: (constraints.maxWidth * 0.037).clamp(12.0, 16.0),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Bottom CTA: Next / Get Started, centered and slightly above bottom
-              Align(
-                alignment: const Alignment(0, 0.95),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.06),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // CTA button
-                      SizedBox(
-                        width: double.infinity,
-                        height: (constraints.maxHeight * 0.065).clamp(48.0, 60.0),
-                        child: ElevatedButton(
-                          onPressed: _onNext,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.brandPrimary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                _currentIndex == _onboardingData.length - 1 ? 'Get Started' : 'Next',
+                              padding:
+                                  const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.brandPrimary
+                                    .withValues(alpha: 0.10),
+                                borderRadius:
+                                    BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                badge,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: (constraints.maxWidth * 0.04).clamp(14.0, 18.0),
-                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      AppColors.brandPrimary,
+                                  fontSize: badgeFontSize,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.8,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.arrow_forward,
-                                size: 18,
-                                color: Colors.white,
+                            ),
+
+                            // =====================================
+                            // BADGE → TITLE
+                            // =====================================
+
+                            SizedBox(
+                              height:
+                                  (constraints.maxHeight * 0.018)
+                                      .clamp(8.0, 18.0),
+                            ),
+
+                            // =====================================
+                            // TITLE
+                            // =====================================
+
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    constraints.maxWidth * 0.92,
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
+                              child: Text(
+                                title,
+                                textAlign: TextAlign.center,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: titleFontSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                  height: 1.2,
+                                ),
+                              ),
+                            ),
 
-                      SizedBox(height: constraints.maxHeight * 0.015),
+                            // =====================================
+                            // TITLE → DESCRIPTION
+                            // =====================================
 
-                      // Optional small dots indicator row (center)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(
-                          _onboardingData.length,
-                          (index) => Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentIndex == index ? 12 : 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: _currentIndex == index ? AppColors.brandPrimary : Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(4),
+                            SizedBox(
+                              height:
+                                  (constraints.maxHeight * 0.015)
+                                      .clamp(8.0, 16.0),
+                            ),
+
+                            // =====================================
+                            // DESCRIPTION
+                            // =====================================
+
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal:
+                                    constraints.maxWidth * 0.02,
+                              ),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth:
+                                      constraints.maxWidth * 0.90,
+                                ),
+                                child: Text(
+                                  description,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 5,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize:
+                                        descriptionFontSize,
+                                    height: 1.5,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+                // =================================================
+                // TOP SKIP BUTTON
+                // =================================================
+
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top:
+                          (constraints.maxHeight * 0.018)
+                              .clamp(8.0, 20.0),
+                      right: horizontalPadding,
+                    ),
+                    child: _currentIndex <
+                            _onboardingData.length - 1
+                        ? TextButton(
+                            onPressed: _navigateToWelcome,
+                            style: TextButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 6,
+                              ),
+                            ),
+                            child: Text(
+                              t.skip,
+                              maxLines: 1,
+                              overflow:
+                                  TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: skipFontSize,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+
+                // =================================================
+                // BOTTOM CTA + SINGLE PAGE INDICATOR
+                // =================================================
+
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: horizontalPadding,
+                      right: horizontalPadding,
+                      bottom:
+                          (constraints.maxHeight * 0.018)
+                              .clamp(8.0, 18.0),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // =========================================
+                        // BUTTON
+                        // =========================================
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: buttonHeight,
+                          child: ElevatedButton(
+                            onPressed: _onNext,
+                            style:
+                                ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  AppColors.brandPrimary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape:
+                                  RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    _currentIndex ==
+                                            _onboardingData
+                                                    .length -
+                                                1
+                                        ? t.getStarted
+                                        : t.next,
+                                    maxLines: 1,
+                                    overflow:
+                                        TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: buttonFontSize,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.arrow_forward,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                    ],
+
+                        // =========================================
+                        // SINGLE PAGE INDICATOR
+                        // =========================================
+
+                        SizedBox(
+                          height:
+                              (constraints.maxHeight * 0.015)
+                                  .clamp(6.0, 14.0),
+                        ),
+
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(
+                            _onboardingData.length,
+                            (index) {
+                              return AnimatedContainer(
+                                duration:
+                                    const Duration(
+                                  milliseconds: 200,
+                                ),
+                                margin:
+                                    const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                width:
+                                    _currentIndex == index
+                                        ? 12
+                                        : 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color:
+                                      _currentIndex == index
+                                          ? AppColors
+                                              .brandPrimary
+                                          : Colors
+                                              .grey
+                                              .shade300,
+                                  borderRadius:
+                                      BorderRadius.circular(4),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        }),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

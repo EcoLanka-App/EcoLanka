@@ -1,27 +1,41 @@
 // Main entry point for the ECOLANKA application.
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'config/app_router.dart';
 import 'config/theme.dart';
 import 'controllers/item_controller.dart';
 import 'providers/user_provider.dart';
+import 'providers/language_provider.dart';
 
-void main() {
-  // Ensure Flutter bindings are initialized before starting the application.
+import 'l10n/app_localizations.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Create language provider
+  final languageProvider = LanguageProvider();
+
+  // Load previously selected language
+  await languageProvider.loadSavedLanguage();
 
   runApp(
     MultiProvider(
       providers: [
-        // Manages user-related state such as district and location.
+        // User state
         ChangeNotifierProvider(
           create: (_) => UserProvider(),
         ),
 
-        // Manages item data and item-related operations.
+        // Item state
         ChangeNotifierProvider(
           create: (_) => ItemController(),
+        ),
+
+        // Language state
+        ChangeNotifierProvider.value(
+          value: languageProvider,
         ),
       ],
       child: const EcoLankaApp(),
@@ -35,36 +49,54 @@ class EcoLankaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'EcoLanka',
-      debugShowCheckedModeBanner: false,
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return MaterialApp.router(
+          title: 'EcoLanka',
+          debugShowCheckedModeBanner: false,
 
-      // Apply the application's global theme.
-      theme: AppTheme.lightTheme,
+          // Global theme
+          theme: AppTheme.lightTheme,
 
-      // Configure application navigation using GoRouter.
-      routerConfig: appRouter,
+          // Current selected language
+          locale: languageProvider.appLocale,
 
-      // Constrain width on web browsers to mimic a mobile phone frame
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: const TextScaler.linear(1.0),
-          ),
-          child: Scaffold(
-            backgroundColor: const Color(0xFF1F2937), // Dark background framing the mobile view
-            body: Center(
-              child: Container(
-                constraints: const BoxConstraints(
-                  maxWidth: 420, // Maximum width for mobile layout simulation
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(0), // Optional rounded corners for the frame
-                  child: child!,
+          // Supported languages
+          supportedLocales: AppLocalizations.supportedLocales,
+
+          // Localization delegates
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+
+          // GoRouter
+          routerConfig: appRouter,
+
+          // Mobile-width layout on web
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(1.0),
+              ),
+              child: Scaffold(
+                backgroundColor: const Color(0xFF1F2937),
+                body: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      maxWidth: 420,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.zero,
+                      child: child!,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
